@@ -1,0 +1,30 @@
+{
+  "name": "Entry Point Selector",
+  "version": "3.1.0",
+  "main": "src/mod.js",
+  "license": "MIT",
+  "author": "usama8800",
+  "akiVersion": "3.1.x || 3.2.x || 3.3.x || 3.5.x",
+  "scripts": {
+    "sppm": "nodemon -w scripts/spawnPointParamsMap.ts --exec npx ts-node scripts/spawnPointParamsMap.ts",
+    "start": "nodemon -w scripts/start.ts --exec npx ts-node scripts/start.ts"
+  },
+  "devDependencies": {
+    "@types/i18n": "^0.13.5",
+    "@types/node": "^14.15.3",
+    "@types/winston": "^2.4.4",
+    "@types/ws": "^8.5.3",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "bestzip": "2.2.1",
+    "eslint": "7.26.0",
+    "i18n": "^0.15.1",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "tsyringe": "4.6.0",
+    "typescript": "4.6.4",
+    "winston": "^3.7.2",
+    "ws": "^8.11.0"
+  }
+}
