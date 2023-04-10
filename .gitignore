@@ -1,4 +1,7 @@
 /dist/
 /src/*.js
-/node_modules/
+node_modules/
 log.txt
+electron/dist
+electron/client
+config/config.json

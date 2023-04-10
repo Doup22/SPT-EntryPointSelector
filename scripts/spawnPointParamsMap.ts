@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { writeFileSync } from "fs";
-import { resolve } from "path";
-
-type Position = { x: number, y: number };
-type Position3D = { x: number, y: number, z: number };
-type PositionMap = { pixel: Position, locations: { id: string, position: Position }[] };
+import type { Position3D, PositionMap } from 'electron/src/types';
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
 
 interface Locations {
   bigmap: SpawnPointParam[];

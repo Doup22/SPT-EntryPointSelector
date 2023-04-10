@@ -27,9 +27,10 @@
     "es2020"
   ],
   "include": [
-    "src/*",
     "src/**/*",
-    "types/**/*"
+    "scripts/**/*",
+    "types/**/*",
+    "electron/src/*"
   ],
   "exclude": [
     "tmp/**/*",
