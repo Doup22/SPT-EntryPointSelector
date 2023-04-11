@@ -9,7 +9,7 @@ function run() {
   debounce = true;
   function helper() {
     console.log('Starting server');
-    exec('start Aki.Server.exe', { cwd: resolve(__dirname, '..', '..', '..') }, (err, data) => {
+    exec('start Aki.Server.exe', { cwd: resolve(__dirname, '..', '..', '..', '..') }, (err, data) => {
       if (err) console.error(err);
       console.log(data);
     });

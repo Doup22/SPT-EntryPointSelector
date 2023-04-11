@@ -33,7 +33,7 @@ function distance3D(a: Position3D, b: Position3D) {
 }
 
 function main() {
-  const locations: Locations = require(resolve('..', 'data', 'spawnPointParams.json'));
+  const locations: Locations = require(resolve('data', 'spawnPointParams.json'));
   const positionMaps: {
     bigmap?: PositionMap[];
     develop?: PositionMap[];
@@ -53,6 +53,7 @@ function main() {
     woods?: PositionMap[];
   } = {};
   for (const location in locations) {
+    if (['Town', 'Terminal', 'Suburbs', 'Private Area', 'hideout', 'develop', 'factory4_night'].includes(location)) continue;
     const spawns = locations[location as keyof Locations]
       .sort((a, b) => {
         if (a.Position.x > b.Position.x) return -1;
@@ -64,11 +65,14 @@ function main() {
         Id: spawn.Id,
         Position: spawn.Position,
       }));
+
     if (positionMaps[location as keyof Locations] === undefined) {
       positionMaps[location as keyof Locations] = [];
     }
     const positionMap = positionMaps[location as keyof Locations]!;
 
+    let x = 100;
+    let y = 100;
     for (const spawn of spawns) {
       let closeI = -1;
       outer: for (let i = 0; i < positionMap.length; i++) {
@@ -82,16 +86,21 @@ function main() {
       }
       if (closeI === -1) {
         positionMap.push({
-          pixel: { x: 0, y: 0 },
+          pixel: { x, y },
           locations: [{ id: spawn.Id, position: spawn.Position }],
         });
+        x += 110;
+        if (x > 1000) {
+          x = 100;
+          y += 110;
+        }
       } else {
         positionMap[closeI].locations.push({ id: spawn.Id, position: spawn.Position });
       }
     }
   }
   writeFileSync(
-    resolve('..', 'data', `positionMaps_${new Date().toISOString().replace(/:/g, '-')}.json`),
+    resolve('data', `positionMaps_${new Date().toISOString().replace(/:/g, '-')}.json`),
     JSON.stringify(positionMaps, null, 2),
     'utf8',
   );

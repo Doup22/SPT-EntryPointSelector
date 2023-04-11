@@ -4,17 +4,38 @@ body {
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
   color: #333;
-  box-sizing: border-box;
-}
-
-:root,
-html {
   height: 100%;
   width: 100%;
+  max-height: 100%;
+  min-height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+:root * {
+  box-sizing: border-box;
+  position: relative;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.form {
+  margin: 10px;
+}
+
+.form * {
+  user-select: none;
 }
 
 .map {
-  width: 100%;
+  max-width: 100%;
+  margin: 10px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
 }
 
 .margin-left {
@@ -23,8 +44,7 @@ html {
 
 #canvas {
   border: 1px solid;
-  margin: 10px 0;
-  width: 100%;
+  margin: auto;
 }
 
 #hidden-images {

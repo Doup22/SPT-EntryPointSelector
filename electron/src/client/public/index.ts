@@ -1,5 +1,6 @@
-import { Locations, Position, PositionMap } from '../../types';
+import { Config, LocationId, Locations, Position, PositionMap } from '../../types';
 
+let config: Config = {} as any;
 let positionMaps: Locations = {} as any;
 let positionMap: PositionMap[] = [] as any;
 
@@ -7,33 +8,40 @@ let debounce = false;
 let scheduledEvent: MouseEvent | undefined;
 async function init() {
   positionMaps = await window.electron.getPositionMaps();
+  config = await window.electron.getConfig();
+  positionMap = positionMaps[config.lastMap];
+
   const select = document.getElementById('map-select') as HTMLSelectElement;
-  positionMap = positionMaps[select.value];
+  select.value = config.lastMap;
+  select.addEventListener('change', async () => {
+    const { value } = select;
+    config = await window.electron.changeMap(value as LocationId);
+    positionMap = positionMaps[config.lastMap];
+    draw();
+  });
   console.log(positionMap);
 
   const onlyOnce = document.getElementById('only-once') as HTMLInputElement;
   const disabled = document.getElementById('disabled') as HTMLInputElement;
-  const config = await window.electron.getConfig();
   onlyOnce.checked = config.onlyOnce;
   disabled.checked = config.disabled;
 
-  onlyOnce.addEventListener('change', () => {
+  onlyOnce.addEventListener('change', async () => {
     const { checked } = onlyOnce;
-    window.electron.changeOnlyOnce(checked);
+    config = await window.electron.changeOnlyOnce(checked);
   });
-  disabled.addEventListener('change', () => {
+  disabled.addEventListener('change', async () => {
     const { checked } = disabled;
-    window.electron.changeDisabled(checked);
+    config = await window.electron.changeDisabled(checked);
   });
 
-  document.addEventListener('mousemove', (e) => {
+  const mouseEventHandler = (e: MouseEvent) => {
     if (!debounce) draw(e);
     else scheduledEvent = e;
-  });
-  document.addEventListener('mousedown', (e) => {
-    if (!debounce) draw(e);
-    else scheduledEvent = e;
-  });
+  };
+  document.addEventListener('mousemove', (e) => mouseEventHandler(e));
+  document.addEventListener('mousedown', (e) => mouseEventHandler(e));
+  document.addEventListener('mouseup', (e) => mouseEventHandler(e));
   for (const elem of document.getElementById('hidden-images')!.children) {
     elem.addEventListener('load', () => setTimeout(() => {
       draw();
@@ -43,7 +51,7 @@ async function init() {
   draw();
 }
 
-function draw(event?: MouseEvent) {
+async function draw(event?: MouseEvent) {
   if (debounce) return;
   debounce = true;
   setTimeout(() => {
@@ -54,19 +62,44 @@ function draw(event?: MouseEvent) {
     }
   }, 30);
   const select = document.getElementById('map-select') as HTMLSelectElement;
+  const mapName = select.value as LocationId;
   let image: HTMLImageElement | undefined;
   for (const img of document.images) {
-    if (img.src.endsWith(`${select.value}.png`)) {
+    if (img.src.endsWith(`${mapName}.png`)) {
       image = img;
       break;
     }
   }
+  if (!image) return;
+
+  const entryPointIds = config.maps[mapName];
+  const selectedPoint = entryPointIds?.length
+    ? positionMap.find(p => p.locations.find(l => l.id === entryPointIds[0]))?.pixel
+    : undefined;
 
   const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-  canvas.width = image!.width;
-  canvas.height = image!.height;
+  const mapE = document.getElementById('map') as HTMLDivElement;
+  let newWidth = image.width;
+  let newHeight = image.height;
+  let factor = 1;
+  if (newWidth > newHeight) {
+    if (newWidth > mapE.clientWidth) {
+      const _factor = mapE.clientWidth / newWidth;
+      newWidth *= _factor;
+      newHeight *= _factor;
+      factor *= _factor;
+    }
+  }
+  if (newHeight > mapE.clientHeight - 20) {
+    const _factor = (mapE.clientHeight - 20) / newHeight;
+    newWidth *= _factor;
+    newHeight *= _factor;
+    factor *= _factor;
+  }
+  canvas.width = newWidth;
+  canvas.height = newHeight;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  ctx.drawImage(image!, 0, 0, image!.width, image!.height);
+  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, newWidth, newHeight);
 
   if (event) {
     let { x, y } = event;
@@ -74,43 +107,56 @@ function draw(event?: MouseEvent) {
     x -= left;
     y -= top;
     if (!(x < 0 || x > width || y < 0 || y > height)) {
-      x = x / width * image!.width;
-      y = y / height * image!.height;
+      x = x / width * image.width;
+      y = y / height * image.height;
+      if (event.type === 'mousedown') {
+        navigator.clipboard.writeText(`\n        "x": ${Number(x).toFixed(0)},\n        "y": ${Number(y).toFixed(0)}`);
+      }
       const threshold = 100;
 
-      let closest: { distance: number, position: Position } | undefined;
+      let closest: { distance: number, position: Position, location: string } | undefined;
       for (const location of positionMap) {
         const distance = Math.sqrt((location.pixel.x - x) ** 2 + (location.pixel.y - y) ** 2);
         if (!closest || distance < closest.distance) {
-          closest = { distance, position: location.pixel };
+          closest = { distance, position: location.pixel, location: location.locations[0].id };
         }
       }
-      drawEntryPoints(ctx, closest && closest.distance < threshold ? closest.position : undefined);
+      drawEntryPoints(ctx, factor, selectedPoint, closest && closest.distance < threshold ? closest.position : undefined);
       if (closest && closest.distance < threshold) {
         if (event.type === 'mousedown') {
-          window.electron.setEntryPoint(select.value as any, closest.position);
+          (async () => {
+            config = await window.electron.setEntryPoint(mapName, closest.position);
+          })();
         }
         const { position } = closest;
         console.log(position);
-        drawCircle(ctx, position.x, position.y, 50, '#00ff00a0');
+        drawCircle(ctx, position.x * factor, position.y * factor, 50 * factor, '#00ff00a0');
         canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = 'default';
       }
-      console.log(x, y);
+      console.log(Number(x).toFixed(0), Number(y).toFixed(0));
     } else {
-      drawEntryPoints(ctx);
+      drawEntryPoints(ctx, factor, selectedPoint);
     }
   } else {
-    drawEntryPoints(ctx);
+    drawEntryPoints(ctx, factor, selectedPoint);
   }
 }
 
-function drawEntryPoints(ctx: CanvasRenderingContext2D, ignore?: Position) {
+function drawEntryPoints(ctx: CanvasRenderingContext2D, factor: number, selected?: Position, ignore?: Position) {
+  let selectedPoint: Position | undefined;
   for (const { pixel } of positionMap) {
     if (ignore && pixel.x === ignore.x && pixel.y === ignore.y)
       continue;
-    drawCircle(ctx, pixel.x, pixel.y, 50, '#ff0000a0');
+    if (selected && pixel.x === selected.x && pixel.y === selected.y) {
+      selectedPoint = pixel;
+      continue;
+    }
+    drawCircle(ctx, pixel.x * factor, pixel.y * factor, 50 * factor, '#ff0000a0');
+  }
+  if (selectedPoint) {
+    drawCircle(ctx, selectedPoint.x * factor, selectedPoint.y * factor, 50 * factor, '#00ff00a0', true, 10 * factor);
   }
 }
 

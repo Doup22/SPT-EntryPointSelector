@@ -1,8 +1,22 @@
-/* eslint-disable no-empty */
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { Config, LocationId, Locations, Position } from './types';
+
+const configPath = resolve('..', 'config', 'config.json');
+
+function getConfig(): Config {
+  try {
+    return JSON.parse(readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    return {
+      onlyOnce: false,
+      disabled: false,
+      maps: {} as any,
+      lastMap: 'bigmap',
+    };
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -12,7 +26,9 @@ function createWindow() {
       preload: resolve('client', 'public', 'preload.js'),
     },
     show: false,
+    autoHideMenuBar: true,
   });
+  win.webContents.openDevTools();
 
   let positionMaps: Locations = {};
   ipcMain.handle('getPositionMaps', () => {
@@ -23,38 +39,39 @@ function createWindow() {
       return [];
     }
   });
-  ipcMain.handle('getConfig', () => {
+  ipcMain.handle('getConfig', () => getConfig());
+  ipcMain.handle('changeOnlyOnce', (event, checked: boolean) => {
     try {
-      return JSON.parse(readFileSync(resolve('..', 'config', 'config.json'), 'utf8'));
-    } catch (error) {
-      return {
-        onlyOnce: false,
-        disabled: false,
-        maps: {},
-      };
-    }
-  });
-  ipcMain.on('changeOnlyOnce', (event, checked: boolean) => {
-    try {
-      const config = JSON.parse(readFileSync(resolve('..', 'config', 'config.json'), 'utf8'));
+      const config = getConfig();
       config.onlyOnce = checked;
-      writeFileSync(resolve('..', 'config', 'config.json'), JSON.stringify(config, null, 2));
-    } catch (error) { }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      return config;
+    } catch (error) { return getConfig(); }
   });
-  ipcMain.on('changeDisabled', (event, checked: boolean) => {
+  ipcMain.handle('changeDisabled', (event, checked: boolean) => {
     try {
-      const config = JSON.parse(readFileSync(resolve('..', 'config', 'config.json'), 'utf8'));
+      const config = getConfig();
       config.disabled = checked;
-      writeFileSync(resolve('..', 'config', 'config.json'), JSON.stringify(config, null, 2));
-    } catch (error) { }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      return config;
+    } catch (error) { return getConfig(); }
   });
-  ipcMain.on('setEntryPoint', (event, map: string, position: Position) => {
+  ipcMain.handle('changeMap', (event, map: LocationId) => {
     try {
-      const config: Config = JSON.parse(readFileSync(resolve('..', 'config', 'config.json'), 'utf8'));
-      const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
+      const config = getConfig();
+      config.lastMap = map;
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      return config;
+    } catch (error) { return getConfig(); }
+  });
+  ipcMain.handle('setEntryPoint', (event, map: string, position: Position) => {
+    const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
+    try {
+      const config = getConfig();
       if (positionMapped) config.maps[map as LocationId] = positionMapped.locations.map(x => x.id);
-      writeFileSync(resolve('..', 'config', 'config.json'), JSON.stringify(config, null, 2));
-    } catch (error) { }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      return config;
+    } catch (error) { return getConfig(); }
   });
 
   win.loadFile(resolve('dist', 'client', 'index.html'));
