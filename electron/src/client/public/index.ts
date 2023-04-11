@@ -23,8 +23,13 @@ async function init() {
 
   const onlyOnce = document.getElementById('only-once') as HTMLInputElement;
   const disabled = document.getElementById('disabled') as HTMLInputElement;
+  const darkTheme = document.getElementById('dark-theme') as HTMLInputElement;
   onlyOnce.checked = config.onlyOnce;
   disabled.checked = config.disabled;
+  darkTheme.checked = localStorage.getItem('dark-theme') === 'true';
+  if (darkTheme.checked) {
+    document.body.classList.add('dark');
+  }
 
   onlyOnce.addEventListener('change', async () => {
     const { checked } = onlyOnce;
@@ -33,6 +38,12 @@ async function init() {
   disabled.addEventListener('change', async () => {
     const { checked } = disabled;
     config = await window.electron.changeDisabled(checked);
+  });
+  darkTheme.addEventListener('change', async () => {
+    const { checked } = darkTheme;
+    localStorage.setItem('dark-theme', checked ? 'true' : 'false');
+    if (checked) document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
   });
 
   const mouseEventHandler = (e: MouseEvent) => {

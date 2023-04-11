@@ -102,10 +102,14 @@ class EntryPointSelector implements IPreAkiLoadMod {
               if (config.disabled) throw new Error();
               let locationId = info.locationId as LocationId;
               if (locationId === 'factory4_night') locationId = 'factory4_day';
-              if (!config.maps[locationId]) throw new Error();
+              if (!config.maps[locationId]?.length) throw new Error();
               const SpawnPointParams = location.SpawnPointParams.filter(spp => {
                 return !spp.Categories.includes('Player') || config.maps[locationId].includes(spp.Id);
               });
+              if (config.onlyOnce) {
+                config.maps[locationId] = [];
+                writeFileSync(resolve(dir, 'config', 'config.json'), JSON.stringify(config, null, 2));
+              }
               return httpResponse.getBody({
                 ...location,
                 SpawnPointParams,
