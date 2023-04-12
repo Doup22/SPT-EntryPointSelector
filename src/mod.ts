@@ -25,7 +25,7 @@ function toJSON(str: string) {
 }
 
 const dir = resolve(__dirname, '..');
-const filepath = resolve(dir, 'log.txt');
+const filepath = resolve(dir, 'log.log');
 let newFile = true;
 function _log(logger: ILogger, url: string, info: any, output: string): any {
   if (newFile) {

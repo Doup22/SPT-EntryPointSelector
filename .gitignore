@@ -1,7 +1,8 @@
 /dist/
+/client/
 /src/*.js
 node_modules/
-log.txt
-electron/dist
-electron/client
+electron/dist/
+electron/client/
+electron/out/
 config/config.json

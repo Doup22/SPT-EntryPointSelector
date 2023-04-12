@@ -40,7 +40,32 @@ const colorMap = {
   '14afdaf7-3bc8-4930-a982-a6ee62011177': 'yellow',
   'a42a953a-2ccc-4acd-9427-dbcc85dc9694': 'yellow',
   '31b28d9e-82c9-40fe-aba4-9199c6a59bc5': 'yellow',
+  // Labs bottom right
+  '6e2cf61e-85a6-4cfa-b232-ae4cd892e4e0': 'green',
+  '037b1766-b66b-4c3e-adf1-390f67dc70bb': 'green',
+  'ad74c165-363f-4706-999c-2d33396865e4': 'green',
+  '9ad6d872-4797-47a9-a5a6-b4675b478913': 'green',
+  '08633a18-3bbd-4a4b-934a-b51e049817b1': 'green',
+  // Labs middle left
+  'dd19a5a1-b24b-4b4c-b0ff-12567bc35c48': 'blue',
+  '5efaabad-3df0-451c-ae8c-df707c90d24f': 'blue',
+  '3d6df899-9a65-48d3-9e55-2664c6c6c4c0': 'blue',
+  'b71e139d-c363-4b9a-b87e-1a6bef552641': 'blue',
+  '5aed643f-3714-49fc-bdf8-00168189da61': 'blue',
+  // Labs top right
+  '604f6db8-2519-42b8-8d45-7b1b1290e97d': 'yellow',
+  'bf1d14c2-2c9b-4921-8534-76c1ae9430dc': 'yellow',
+  '01d14f42-45de-45fb-be52-bfff19f3a470': 'yellow',
+  '707edb2a-0cbb-4c12-9fc5-49a34af4779d': 'yellow',
+  '63a12c08-6718-4344-b9c4-d9c2b0550faa': 'yellow',
 };
+
+// Labs 1F: 1306, 1922
+// Labs TF: 44  , 1168
+// Labs 2F: 2566, 1106
+
+// To TF:  -1262, -756
+// To 2F:  +1260, -816
 
 const imagesPath = '../../electron/src/client/public/images';
 const canvas = document.getElementById('canvas');
@@ -201,7 +226,7 @@ function draw(event) {
     console.log(Number(mouseX).toFixed(0), Number(mouseY).toFixed(0));
 
   for (const spawn of spawns) {
-    const [x, y] = worldToScreen(spawn.Position.x, spawn.Position.z);
+    const [x, y] = worldToScreen(spawn.Position);
     let color = colorMap[spawn.Id] || 'red';
     if (selectedIds.includes(spawn.Id)) {
       color = 'green';
@@ -213,25 +238,29 @@ function draw(event) {
 
   if (static) {
     const closePoints = spawns.filter(s => {
-      const [x, y] = worldToScreen(s.Position.x, s.Position.z);
+      const [x, y] = worldToScreen(s.Position);
       return distance2(x + shiftX, y + shiftZ, mouseX, mouseY) < closenessThreshold;
     });
 
     for (const spawn of closePoints) {
-      const [x, y] = worldToScreen(spawn.Position.x, spawn.Position.z);
+      const [x, y] = worldToScreen(spawn.Position);
       drawCircle(ctx, x + shiftX, y + shiftZ, 15, colorMap[spawn.Id] || 'black', 10);
     }
     if (event?.type === 'mousedown') {
       selectedIds = closePoints.map(s => s.Id);
       closeDiv.innerText = JSON.stringify(selectedIds);
       const sumXY = closePoints.reduce(([accX, accY], s) => {
-        const [x, y] = worldToScreen(s.Position.x, s.Position.z);
+        const [x, y] = worldToScreen(s.Position);
         return [accX + x + shiftX, accY + y + shiftZ];
       }, [0, 0]);
       const avgX = Number(sumXY[0] / closePoints.length).toFixed(0);
       const avgY = Number(sumXY[1] / closePoints.length).toFixed(0);
       closeDiv.innerText += `\n"x": ${avgX},\n"y": ${avgY}`;
-      navigator.clipboard.writeText('(' + selectedIds.join('|') + ')');
+      navigator.clipboard.writeText(`\n        "x": ${Number(avgX).toFixed(0)},\n        "y": ${Number(avgY).toFixed(0)}`).then(() => {
+        setTimeout(() => navigator.clipboard.writeText('(' + selectedIds.join('|') + ')'), 300);
+      }).catch(() => {
+        setTimeout(() => navigator.clipboard.writeText('(' + selectedIds.join('|') + ')'), 300);
+      });
     }
   }
 }
@@ -255,14 +284,25 @@ function distance2(x1, y1, x2, y2) {
 }
 
 // function to convert world coordinates to screen coordinates
-function worldToScreen(x, z) {
+function worldToScreen({ x, y, z }) {
   if (swapAxis) [x, z] = [z, x];
   const tX = (x - minX) / (maxX - minX);
   const tZ = (z - minZ) / (maxZ - minZ);
-  if (lerpType === 0) return [lerp(0, canvas.width, tX), lerp(0, canvas.height, tZ)];
-  if (lerpType === 1) return [lerp(canvas.width, 0, tX), lerp(0, canvas.height, tZ)];
-  if (lerpType === 2) return [lerp(0, canvas.width, tX), lerp(canvas.height, 0, tZ)];
-  if (lerpType === 3) return [lerp(canvas.width, 0, tX), lerp(canvas.height, 0, tZ)];
+  if (lerpType === 0) [x, z] = [lerp(0, canvas.width, tX), lerp(0, canvas.height, tZ)];
+  if (lerpType === 1) [x, z] = [lerp(canvas.width, 0, tX), lerp(0, canvas.height, tZ)];
+  if (lerpType === 2) [x, z] = [lerp(0, canvas.width, tX), lerp(canvas.height, 0, tZ)];
+  if (lerpType === 3) [x, z] = [lerp(canvas.width, 0, tX), lerp(canvas.height, 0, tZ)];
+  if (map === 'laboratory') {
+    if (y < -3) {
+      x -= 1262;
+      z -= 756;
+    }
+    if (y > 3) {
+      x += 1260;
+      z -= 816;
+    }
+  }
+  return [x, z];
 }
 
 function lerp(a, b, t) {

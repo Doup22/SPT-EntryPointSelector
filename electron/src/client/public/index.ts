@@ -10,16 +10,17 @@ async function init() {
   positionMaps = await window.electron.getPositionMaps();
   config = await window.electron.getConfig();
   positionMap = positionMaps[config.lastMap];
+  // console.log(positionMaps);
 
   const select = document.getElementById('map-select') as HTMLSelectElement;
   select.value = config.lastMap;
   select.addEventListener('change', async () => {
     const { value } = select;
     config = await window.electron.changeMap(value as LocationId);
-    positionMap = positionMaps[config.lastMap];
+    positionMap = positionMaps[select.value];
+    // console.log(positionMap);
     draw();
   });
-  console.log(positionMap);
 
   const onlyOnce = document.getElementById('only-once') as HTMLInputElement;
   const disabled = document.getElementById('disabled') as HTMLInputElement;
@@ -140,13 +141,13 @@ async function draw(event?: MouseEvent) {
           })();
         }
         const { position } = closest;
-        console.log(position);
+        // console.log(position);
         drawCircle(ctx, position.x * factor, position.y * factor, 50 * factor, '#00ff00a0');
         canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = 'default';
       }
-      console.log(Number(x).toFixed(0), Number(y).toFixed(0));
+      // console.log(Number(x).toFixed(0), Number(y).toFixed(0));
     } else {
       drawEntryPoints(ctx, factor, selectedPoint);
     }

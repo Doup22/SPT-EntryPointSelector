@@ -1,9 +1,13 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { Config, LocationId, Locations, Position } from './types';
 
-const configPath = resolve('..', 'config', 'config.json');
+const configDir = resolve('..', 'config');
+const configPath = resolve(configDir, 'config.json');
+if (!existsSync(configDir)) {
+  mkdirSync(configDir);
+}
 
 function getConfig(): Config {
   try {
@@ -23,12 +27,12 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: resolve('client', 'public', 'preload.js'),
+      preload: resolve(__dirname, 'client', 'public', 'preload.js'),
     },
     show: false,
     autoHideMenuBar: true,
   });
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 
   let positionMaps: Locations = {};
   ipcMain.handle('getPositionMaps', () => {
@@ -74,7 +78,7 @@ function createWindow() {
     } catch (error) { return getConfig(); }
   });
 
-  win.loadFile(resolve('dist', 'client', 'index.html'));
+  win.loadFile(resolve(__dirname, 'client', 'index.html'));
   win.maximize();
   win.show();
 }
