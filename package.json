@@ -8,7 +8,8 @@
   "scripts": {
     "sppm": "nodemon -w scripts/spawnPointParamsMap.ts --exec npx ts-node scripts/spawnPointParamsMap.ts",
     "zip": "npx ts-node scripts/zip.ts",
-    "start": "nodemon -w scripts/start.ts --exec npx ts-node scripts/start.ts"
+    "start": "nodemon -w scripts/start.ts --exec npx ts-node scripts/start.ts",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.1",

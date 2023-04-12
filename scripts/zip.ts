@@ -10,17 +10,14 @@ async function main() {
   const zipFileName = `${packageJson.name}-${packageJson.version}.zip`;
 
   await fs.remove(zipFileName);
+  await fs.emptyDir('dist');
   await fs.emptyDir('client');
+  execSync('npm run build');
   execSync('npm run package', { cwd: 'electron' });
   await fs.emptyDir(dirName);
-  await fs.copy('src', resolve(dirName, 'src'), {
-    filter: (src: string) => {
-      if (src === 'src') return true;
-      return src.endsWith('.js');
-    }
-  });
   await fs.copy('client', resolve(dirName, 'client'));
   await fs.copy('data', resolve(dirName, 'data'));
+  await fs.copy(resolve('dist', 'src', 'mod.js'), resolve(dirName, 'src', 'mod.js'));
   await Promise.all(['package.json', 'README.md', 'LICENSE'].map(async file => {
     return await fs.copy(file, resolve(dirName, file));
   }));
