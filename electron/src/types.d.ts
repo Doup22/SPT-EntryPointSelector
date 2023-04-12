@@ -10,7 +10,7 @@ export interface PositionMap {
   pixel: Position;
   locations: {
     id: string;
-    position: Position;
+    position: Position3D;
   }[];
 }
 
