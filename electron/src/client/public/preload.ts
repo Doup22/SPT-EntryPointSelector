@@ -8,7 +8,8 @@ declare global {
       changeOnlyOnce: (checked: boolean) => Promise<Config>;
       changeDisabled: (checked: boolean) => Promise<Config>;
       changeMap: (map: LocationId) => Promise<Config>;
-      setEntryPoint: (map: LocationId, position: Position) => Promise<Config>;
+      addEntryPoint: (map: LocationId, position: Position) => Promise<Config>;
+      removeEntryPoint: (map: LocationId, position: Position) => Promise<Config>;
       getConfig: () => Promise<Config>;
     },
   }
@@ -21,6 +22,7 @@ contextBridge.exposeInMainWorld('electron', {
   changeOnlyOnce: (checked: boolean) => ipcRenderer.invoke('changeOnlyOnce', checked),
   changeDisabled: (checked: boolean) => ipcRenderer.invoke('changeDisabled', checked),
   changeMap: (map: LocationId) => ipcRenderer.invoke('changeMap', map),
-  setEntryPoint: (map: LocationId, position: Position) => ipcRenderer.invoke('setEntryPoint', map, position),
+  addEntryPoint: (map: LocationId, position: Position) => ipcRenderer.invoke('addEntryPoint', map, position),
+  removeEntryPoint: (map: LocationId, position: Position) => ipcRenderer.invoke('removeEntryPoint', map, position),
   getConfig: () => ipcRenderer.invoke('getConfig'),
 });

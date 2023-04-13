@@ -68,11 +68,25 @@ function createWindow() {
       return config;
     } catch (error) { return getConfig(); }
   });
-  ipcMain.handle('setEntryPoint', (event, map: string, position: Position) => {
+  ipcMain.handle('addEntryPoint', (event, map: string, position: Position) => {
     const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
     try {
       const config = getConfig();
-      if (positionMapped) config.maps[map as LocationId] = positionMapped.locations.map(x => x.id);
+      if (positionMapped) {
+        if (!config.maps[map as LocationId]) config.maps[map as LocationId] = [];
+        config.maps[map as LocationId].push(...positionMapped.locations.map(x => x.id));
+      }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      return config;
+    } catch (error) { return getConfig(); }
+  });
+  ipcMain.handle('removeEntryPoint', (event, map: string, position: Position) => {
+    const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
+    try {
+      const config = getConfig();
+      if (positionMapped) config.maps[map as LocationId] = config.maps[map as LocationId].filter(l =>
+        !positionMapped.locations.find(ll => l === ll.id)
+      );
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
     } catch (error) { return getConfig(); }
