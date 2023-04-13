@@ -63,6 +63,11 @@ async function init() {
   draw();
 }
 
+setInterval(async () => {
+  config = await window.electron.getConfig();
+  draw();
+}, 1000 * 60);
+
 async function draw(event?: MouseEvent) {
   if (debounce) return;
   debounce = true;
