@@ -6,3 +6,5 @@ electron/dist/
 electron/client/
 electron/out/
 config/config.json
+*.local
+*.env

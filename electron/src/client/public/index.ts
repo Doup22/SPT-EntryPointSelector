@@ -3,6 +3,9 @@ import { Config, LocationId, Locations, Position, PositionMap } from '../../type
 let config: Config = {} as any;
 let positionMaps: Locations = {} as any;
 let positionMap: PositionMap[] = [] as any;
+const select = document.getElementById('map-select') as HTMLSelectElement;
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const status = document.getElementById('status') as HTMLSpanElement;
 
 let debounce = false;
 let scheduledEvent: MouseEvent | undefined;
@@ -10,21 +13,19 @@ async function init() {
   positionMaps = await window.electron.getPositionMaps();
   config = await window.electron.getConfig();
   positionMap = positionMaps[config.lastMap];
-  // console.log(positionMaps);
 
-  const select = document.getElementById('map-select') as HTMLSelectElement;
   select.value = config.lastMap;
-  select.addEventListener('change', async () => {
-    const { value } = select;
-    config = await window.electron.changeMap(value as LocationId);
-    positionMap = positionMaps[select.value];
-    // console.log(positionMap);
-    draw();
+  select.addEventListener('change', () => setMap(select.value));
+  window.electron.onMapChange((event, map) => {
+    select.value = map;
+    setMap(map);
   });
 
   const onlyOnce = document.getElementById('only-once') as HTMLInputElement;
+  const autoOpen = document.getElementById('auto-open') as HTMLInputElement;
   const disabled = document.getElementById('disabled') as HTMLInputElement;
   const darkTheme = document.getElementById('dark-theme') as HTMLInputElement;
+  autoOpen.checked = config.autoOpen;
   onlyOnce.checked = config.onlyOnce;
   disabled.checked = config.disabled;
   darkTheme.checked = localStorage.getItem('dark-theme') === 'true';
@@ -32,6 +33,10 @@ async function init() {
     document.body.classList.add('dark');
   }
 
+  autoOpen.addEventListener('change', async () => {
+    const { checked } = autoOpen;
+    config = await window.electron.changeAutoOpen(checked);
+  });
   onlyOnce.addEventListener('change', async () => {
     const { checked } = onlyOnce;
     config = await window.electron.changeOnlyOnce(checked);
@@ -68,6 +73,12 @@ setInterval(async () => {
   draw();
 }, 1000 * 60);
 
+async function setMap(map: string) {
+  config = await window.electron.changeMap(map as LocationId);
+  positionMap = positionMaps[map];
+  draw();
+}
+
 async function draw(event?: MouseEvent) {
   if (debounce) return;
   debounce = true;
@@ -78,7 +89,6 @@ async function draw(event?: MouseEvent) {
       scheduledEvent = undefined;
     }
   }, 30);
-  const select = document.getElementById('map-select') as HTMLSelectElement;
   const mapName = select.value as LocationId;
   let image: HTMLImageElement | undefined;
   for (const img of document.images) {
@@ -96,8 +106,8 @@ async function draw(event?: MouseEvent) {
       return [...ret, curr.pixel];
     }, [] as Position[])
     : undefined;
+  status.innerText = selectedPoints?.length ? `${selectedPoints.length} point(s) selected` : 'No points selected. Will use all points.';
 
-  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
   const mapE = document.getElementById('map') as HTMLDivElement;
   let newWidth = image.width;
   let newHeight = image.height;

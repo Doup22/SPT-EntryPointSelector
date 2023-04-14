@@ -29,10 +29,16 @@ body.dark {
 
 .form {
   margin: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .form * {
   user-select: none;
+}
+
+.form .spacer {
+  flex: 1;
 }
 
 .map {

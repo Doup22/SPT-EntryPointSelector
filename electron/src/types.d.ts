@@ -17,6 +17,7 @@ export interface PositionMap {
 export interface Config {
   onlyOnce: boolean;
   disabled: boolean;
+  autoOpen: boolean;
   lastMap: LocationId;
   maps: {
     [key in LocationId]: string[];

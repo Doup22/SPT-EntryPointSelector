@@ -1,6 +1,6 @@
 {
   "name": "Entry Point Selector",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "main": "src/mod.js",
   "license": "MIT",
   "author": "usama8800",

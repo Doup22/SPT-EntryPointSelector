@@ -12,6 +12,7 @@ import type { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
 import type { DynamicRouterModService } from '@spt-aki/services/mod/dynamicRouter/DynamicRouterModService';
 import type { StaticRouterModService } from '@spt-aki/services/mod/staticRouter/StaticRouterModService';
 import type { HttpResponseUtil } from '@spt-aki/utils/HttpResponseUtil';
+import { execFile } from 'child_process';
 import type { Config, LocationId } from 'electron/src/types';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -84,7 +85,15 @@ class EntryPointSelector implements IPreAkiLoadMod {
     staticRouterModService.registerStaticRouter(
       'StaticRoutePeekingAki',
       [
-        // _setSpawnPointParams
+        // _setSpawnPointParams,
+        {
+          url: '/singleplayer/settings/raid/menu',
+          action: (_url: string, _info: any, _sessionID: string, _output: string): any => {
+            execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'));
+            const x = inraidCallbacks.getRaidMenuSettings();
+            return x;
+          }
+        },
       ],
       'aki'
     );
