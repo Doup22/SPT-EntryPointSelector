@@ -14,7 +14,7 @@ import type { StaticRouterModService } from '@spt-aki/services/mod/staticRouter/
 import type { HttpResponseUtil } from '@spt-aki/utils/HttpResponseUtil';
 import { execFile } from 'child_process';
 import type { Config, LocationId } from 'electron/src/types';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 function toJSON(str: string) {
@@ -26,23 +26,46 @@ function toJSON(str: string) {
 }
 
 const dir = resolve(__dirname, '..');
-const filepath = resolve(dir, 'log.log');
+const configFilepath = resolve(dir, 'config', 'config.json');
+
+if (!existsSync(configFilepath)) {
+  if (!existsSync(resolve(dir, 'config'))) {
+    mkdirSync(resolve(dir, 'config'));
+  }
+  writeFileSync(configFilepath, JSON.stringify({
+    autoOpen: true,
+    disabled: false,
+    lastMap: 'bigmap',
+    maps: {},
+    onlyOnce: false,
+  }, null, 2));
+} else {
+  const config = JSON.parse(readFileSync(configFilepath, 'utf8'));
+  if (config.maps?.length === 0) {
+    config.maps = {};
+    writeFileSync(configFilepath, JSON.stringify(config, null, 2));
+  }
+}
+
+const logFilepath = resolve(dir, 'log.log');
 let newFile = true;
 function _log(logger: ILogger, url: string, info: any, output: string): any {
   if (newFile) {
-    writeFileSync(filepath, '');
+    writeFileSync(logFilepath, '');
     newFile = false;
   }
   logger.info('info: ' + JSON.stringify(toJSON(info), null, 2));
   logger.info('data: ' + JSON.stringify(toJSON(output), null, 2));
-  let file = readFileSync(filepath, 'utf8');
+  let file = readFileSync(logFilepath, 'utf8');
   file += '\n>>>>>> url: ' + url;
   file += '\ninfo: ' + JSON.stringify(toJSON(info), null, 2);
   file += '\ndata: ' + JSON.stringify(toJSON(output), null, 2);
-  writeFileSync(filepath, file);
+  writeFileSync(logFilepath, file);
 }
 
 class EntryPointSelector implements IPreAkiLoadMod {
+
+  timeout: any;
 
   preAkiLoad(container: DependencyContainer): void {
     const _logger = container.resolve<ILogger>('WinstonLogger');
@@ -89,9 +112,28 @@ class EntryPointSelector implements IPreAkiLoadMod {
         {
           url: '/singleplayer/settings/raid/menu',
           action: (_url: string, _info: any, _sessionID: string, _output: string): any => {
-            execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'));
-            const x = inraidCallbacks.getRaidMenuSettings();
-            return x;
+            this.timeout = setTimeout(() => {
+              console.log('Timeout');
+              execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
+                cwd: resolve(__dirname, '..', 'client')
+              });
+            }, 500);
+            return inraidCallbacks.getRaidMenuSettings();
+          }
+        },
+        {
+          url: '/eps/location',
+          action: (_url: string, info: { locationId: string }, _sessionID: string, _output: string): any => {
+            clearTimeout(this.timeout);
+            const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
+            if (config.autoOpen) {
+              config.lastMap = info.locationId as LocationId;
+              writeFileSync(configFilepath, JSON.stringify(config, null, 2));
+              execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
+                cwd: resolve(__dirname, '..', 'client')
+              });
+            }
+            return '';
           }
         },
       ],
@@ -107,7 +149,7 @@ class EntryPointSelector implements IPreAkiLoadMod {
             inraidCallbacks.registerPlayer(url, info, sessionID);
             const location = locationController.get(info.locationId);
             try {
-              const config: Config = JSON.parse(readFileSync(resolve(dir, 'config', 'config.json'), 'utf8'));
+              const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
               if (config.disabled) throw new Error();
               let locationId = info.locationId as LocationId;
               if (locationId === 'factory4_night') locationId = 'factory4_day';
@@ -117,7 +159,7 @@ class EntryPointSelector implements IPreAkiLoadMod {
               });
               if (config.onlyOnce) {
                 config.maps[locationId] = [];
-                writeFileSync(resolve(dir, 'config', 'config.json'), JSON.stringify(config, null, 2));
+                writeFileSync(configFilepath, JSON.stringify(config, null, 2));
               }
               return httpResponse.getBody({
                 ...location,

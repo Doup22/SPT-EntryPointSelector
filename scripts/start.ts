@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 let debounce = false;
 let timeout: undefined | number;
-function run() {
+export function run() {
   if (debounce) return;
   debounce = true;
   function helper() {
@@ -37,4 +37,13 @@ function main() {
   });
 }
 
-main();
+if (require.main === module) {
+  const command = process.argv[2];
+  if (!command || command === 'watch') {
+    main();
+  } else if (command === 'run') {
+    run();
+  } else {
+    console.error('Unknown command');
+  }
+}

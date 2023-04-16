@@ -1,7 +1,11 @@
-/dist/
+dist/
+bin/
+obj/
+.vs/
 /client/
 /src/*.js
 node_modules/
+deps/
 electron/dist/
 electron/client/
 electron/out/

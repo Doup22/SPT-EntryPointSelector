@@ -1,21 +1,33 @@
 import dotenv from 'dotenv';
 import { BrowserWindow, app, ipcMain, screen } from 'electron';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { Config, LocationId, Locations, Position } from './types';
 
 dotenv.config();
 
+const logFile = createWriteStream(resolve('..', 'log.log'));
 const configDir = resolve('..', 'config');
 const configPath = resolve(configDir, 'config.json');
 if (!existsSync(configDir)) {
   mkdirSync(configDir);
 }
 
+function log(...xs: any[]) {
+  for (let i = 0; i < xs.length; i++) {
+    const x = xs[i];
+    console.log(x);
+    logFile.write(typeof x !== 'object' ? String(x) : JSON.stringify(x, null, 2));
+    if (i < xs.length - 1) logFile.write(' ');
+  }
+  logFile.write('\n');
+}
+
 function getConfig(): Config {
   try {
     return JSON.parse(readFileSync(configPath, 'utf8'));
   } catch (error) {
+    log(error);
     return {
       onlyOnce: false,
       disabled: false,
@@ -51,6 +63,7 @@ function createWindow() {
       positionMaps = JSON.parse(readFileSync(resolve('..', 'data', 'positionMaps.json'), 'utf8'));
       return positionMaps;
     } catch (error) {
+      log(error);
       return [];
     }
   });
@@ -61,7 +74,10 @@ function createWindow() {
       config.autoOpen = checked;
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
   ipcMain.handle('changeOnlyOnce', (event, checked: boolean) => {
     try {
@@ -69,7 +85,10 @@ function createWindow() {
       config.onlyOnce = checked;
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
   ipcMain.handle('changeDisabled', (event, checked: boolean) => {
     try {
@@ -77,7 +96,10 @@ function createWindow() {
       config.disabled = checked;
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
   ipcMain.handle('changeMap', (event, map: LocationId) => {
     try {
@@ -85,30 +107,39 @@ function createWindow() {
       config.lastMap = map;
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
-  ipcMain.handle('addEntryPoint', (event, map: string, position: Position) => {
+  ipcMain.handle('addEntryPoint', (event, map: LocationId, position: Position) => {
     const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
     try {
       const config = getConfig();
       if (positionMapped) {
-        if (!config.maps[map as LocationId]) config.maps[map as LocationId] = [];
-        config.maps[map as LocationId].push(...positionMapped.locations.map(x => x.id));
+        if (!config.maps[map]) config.maps[map] = [];
+        config.maps[map].push(...positionMapped.locations.map(x => x.id));
       }
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
-  ipcMain.handle('removeEntryPoint', (event, map: string, position: Position) => {
+  ipcMain.handle('removeEntryPoint', (event, map: LocationId, position: Position) => {
     const positionMapped = positionMaps[map].find(p => p.pixel.x === position.x && p.pixel.y === position.y);
     try {
       const config = getConfig();
-      if (positionMapped) config.maps[map as LocationId] = config.maps[map as LocationId].filter(l =>
+      if (positionMapped) config.maps[map] = config.maps[map].filter(l =>
         !positionMapped.locations.find(ll => l === ll.id)
       );
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       return config;
-    } catch (error) { return getConfig(); }
+    } catch (error) {
+      log(error);
+      return getConfig();
+    }
   });
 
   win.loadFile(resolve(__dirname, 'client', 'index.html'));
@@ -134,5 +165,12 @@ if (!gotTheLock) {
 
   app.whenReady().then(() => {
     myWindow = createWindow();
+  });
+
+  app.on('window-all-closed', () => {
+    logFile.close();
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
   });
 }
