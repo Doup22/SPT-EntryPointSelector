@@ -49,7 +49,7 @@ if (!existsSync(configFilepath)) {
 
 const logFilepath = resolve(dir, 'log.log');
 let newFile = true;
-function _log(logger: ILogger, url: string, info: any, output: string): any {
+function log(logger: ILogger, url: string, info: any, output: string): any {
   if (newFile) {
     writeFileSync(logFilepath, '');
     newFile = false;
@@ -68,7 +68,7 @@ class EntryPointSelector implements IPreAkiLoadMod {
   timeout: any;
 
   preAkiLoad(container: DependencyContainer): void {
-    const _logger = container.resolve<ILogger>('WinstonLogger');
+    const logger = container.resolve<ILogger>('WinstonLogger');
     const databaseServer = container.resolve<DatabaseServer>('DatabaseServer');
     const staticRouterModService = container.resolve<StaticRouterModService>('StaticRouterModService');
     const dynamicRouterModService = container.resolve<DynamicRouterModService>('DynamicRouterModService');
@@ -76,9 +76,9 @@ class EntryPointSelector implements IPreAkiLoadMod {
     const inraidCallbacks = container.resolve<InraidCallbacks>('InraidCallbacks');
     const httpResponse = container.resolve<HttpResponseUtil>('HttpResponseUtil');
 
-    const _setSpawnPointParams = {
+    const setSpawnPointParams = {
       url: '/client/locations',
-      action: (_url: string, _info: any, _sessionID: string, _output: string): any => {
+      action: (_url: string, _info: any, _sessionID: string, output: string): any => {
         const locations = databaseServer.getTables().locations;
         const returnResult: ILocationsGenerateAllResponse = {
           locations: undefined as any,
@@ -104,72 +104,75 @@ class EntryPointSelector implements IPreAkiLoadMod {
         return httpResponse.getBody(returnResult);
       }
     };
+    const openEPSOnRaid = {
+      url: '/singleplayer/settings/raid/menu',
+      action: (_url: string, _info: any, _sessionID: string, output: string): any => {
+        this.timeout = setTimeout(() => {
+          console.log('Timeout');
+          execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
+            cwd: resolve(__dirname, '..', 'client')
+          });
+        }, 500);
+        return inraidCallbacks.getRaidMenuSettings();
+      }
+    };
+    const openEPSOnLocation = {
+      url: '/eps/location',
+      action: (_url: string, info: { locationId: string }, _sessionID: string, output: string): any => {
+        clearTimeout(this.timeout);
+        const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
+        if (config.autoOpen) {
+          config.lastMap = info.locationId as LocationId;
+          writeFileSync(configFilepath, JSON.stringify(config, null, 2));
+          execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
+            cwd: resolve(__dirname, '..', 'client')
+          });
+        }
+        return '';
+      }
+    };
+    const main = {
+      url: '/client/location/getLocalloot',
+      action: (url: string, info: IRegisterPlayerRequestData, sessionID: string, output: string): any => {
+        log(logger, url, info, output);
+        inraidCallbacks.registerPlayer(url, info, sessionID);
+        const location = locationController.get(sessionID, info);
+        try {
+          const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
+          if (config.disabled) throw new Error();
+          let locationId = info.locationId as LocationId;
+          if (locationId === 'factory4_night') locationId = 'factory4_day';
+          if (!config.maps[locationId]?.length) throw new Error();
+          const SpawnPointParams = location.SpawnPointParams.filter(spp => {
+            return !spp.Categories.includes('Player') || config.maps[locationId].includes(spp.Id);
+          });
+          if (config.onlyOnce) {
+            config.maps[locationId] = [];
+            writeFileSync(configFilepath, JSON.stringify(config, null, 2));
+          }
+          return httpResponse.getBody({
+            ...location,
+            SpawnPointParams,
+          });
+        } catch (err) {
+          return httpResponse.getBody(location);
+        }
+      }
+    };
 
     staticRouterModService.registerStaticRouter(
       'StaticRoutePeekingAki',
       [
-        // _setSpawnPointParams,
-        {
-          url: '/singleplayer/settings/raid/menu',
-          action: (_url: string, _info: any, _sessionID: string, _output: string): any => {
-            this.timeout = setTimeout(() => {
-              console.log('Timeout');
-              execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
-                cwd: resolve(__dirname, '..', 'client')
-              });
-            }, 500);
-            return inraidCallbacks.getRaidMenuSettings();
-          }
-        },
-        {
-          url: '/eps/location',
-          action: (_url: string, info: { locationId: string }, _sessionID: string, _output: string): any => {
-            clearTimeout(this.timeout);
-            const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
-            if (config.autoOpen) {
-              config.lastMap = info.locationId as LocationId;
-              writeFileSync(configFilepath, JSON.stringify(config, null, 2));
-              execFile(resolve(__dirname, '..', 'client', 'EntryPointSelector.exe'), {
-                cwd: resolve(__dirname, '..', 'client')
-              });
-            }
-            return '';
-          }
-        },
+        // setSpawnPointParams,
+        openEPSOnRaid,
+        openEPSOnLocation,
       ],
       'aki'
     );
-
     dynamicRouterModService.registerDynamicRouter(
       'DynamicRoutePeekingAki',
       [
-        {
-          url: '/client/location/getLocalloot',
-          action: (url: string, info: IRegisterPlayerRequestData, sessionID: string, _output: string): any => {
-            inraidCallbacks.registerPlayer(url, info, sessionID);
-            const location = locationController.get(info.locationId);
-            try {
-              const config: Config = JSON.parse(readFileSync(configFilepath, 'utf8'));
-              if (config.disabled) throw new Error();
-              let locationId = info.locationId as LocationId;
-              if (locationId === 'factory4_night') locationId = 'factory4_day';
-              if (!config.maps[locationId]?.length) throw new Error();
-              const SpawnPointParams = location.SpawnPointParams.filter(spp => {
-                return !spp.Categories.includes('Player') || config.maps[locationId].includes(spp.Id);
-              });
-              if (config.onlyOnce) {
-                config.maps[locationId] = [];
-                writeFileSync(configFilepath, JSON.stringify(config, null, 2));
-              }
-              return httpResponse.getBody({
-                ...location,
-                SpawnPointParams,
-              });
-            } catch (err) {
-              return httpResponse.getBody(location);
-            }
-          }
-        }
+        main,
       ],
       'aki'
     );

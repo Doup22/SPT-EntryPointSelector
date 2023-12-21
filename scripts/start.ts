@@ -18,7 +18,7 @@ export function run() {
   }
 
   console.log('\nStopping previously running servers');
-  exec('taskkill /IM "Aki.Server.exe"', (err, data) => {
+  exec('taskkill /IM "Aki.Server.exe" /F', (err, data) => {
     if (err) {
       if (err.code !== 128) console.error(err);
     } else console.log(data);

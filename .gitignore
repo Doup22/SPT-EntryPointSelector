@@ -4,6 +4,7 @@ obj/
 .vs/
 /client/
 /src/*.js
+/src/*.js.map
 node_modules/
 deps/
 electron/dist/

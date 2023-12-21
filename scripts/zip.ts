@@ -67,7 +67,7 @@ async function main() {
 
 async function deploy() {
   await new Promise<void>((done) => {
-    exec('taskkill /IM "EscapeFromTarkov.exe"', (err, _) => {
+    exec('taskkill /IM "EscapeFromTarkov.exe" /F', (err, _) => {
       if (err && err.code !== 128) console.error(err);
       done();
     });
