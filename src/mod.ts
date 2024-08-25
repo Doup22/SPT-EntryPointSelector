@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { InraidCallbacks } from '@spt-aki/callbacks/InraidCallbacks';
-import type { LocationController } from '@spt-aki/controllers/LocationController';
-import type { ILocationBase, SpawnPointParam } from '@spt-aki/models/eft/common/ILocationBase';
-import type { ILocationsGenerateAllResponse } from '@spt-aki/models/eft/common/ILocationsSourceDestinationBase';
-import type { IRegisterPlayerRequestData } from '@spt-aki/models/eft/inRaid/IRegisterPlayerRequestData';
-import type { IPreAkiLoadMod } from '@spt-aki/models/external/IPreAkiLoadMod';
-import type { DependencyContainer } from '@spt-aki/models/external/tsyringe';
-import type { ILocations } from '@spt-aki/models/spt/server/ILocations';
-import type { ILogger } from '@spt-aki/models/spt/utils/ILogger';
-import type { DatabaseServer } from '@spt-aki/servers/DatabaseServer';
-import type { DynamicRouterModService } from '@spt-aki/services/mod/dynamicRouter/DynamicRouterModService';
-import type { StaticRouterModService } from '@spt-aki/services/mod/staticRouter/StaticRouterModService';
-import type { HttpResponseUtil } from '@spt-aki/utils/HttpResponseUtil';
+import type { InraidCallbacks } from '@spt/callbacks/InraidCallbacks';
+import type { LocationController } from '@spt/controllers/LocationController';
+import type { ILocationBase, SpawnPointParam } from '@spt/models/eft/common/ILocationBase';
+import type { ILocationsGenerateAllResponse } from '@spt/models/eft/common/ILocationsSourceDestinationBase';
+import type { IRegisterPlayerRequestData } from '@spt/models/eft/inRaid/IRegisterPlayerRequestData';
+import type { ISptLoadMod } from '@spt/models/external/IPreSptLoadMod';
+import type { DependencyContainer } from '@spt/models/external/tsyringe';
+import type { ILocations } from '@spt/models/spt/server/ILocations';
+import type { ILogger } from '@spt/models/spt/utils/ILogger';
+import type { DatabaseServer } from '@spt/servers/DatabaseServer';
+import type { DynamicRouterModService } from '@spt/services/mod/dynamicRouter/DynamicRouterModService';
+import type { StaticRouterModService } from '@spt/services/mod/staticRouter/StaticRouterModService';
+import type { HttpResponseUtil } from '@spt/utils/HttpResponseUtil';
 import { execFile } from 'child_process';
 import type { Config, LocationId } from 'electron/src/types';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -63,18 +63,18 @@ function log(logger: ILogger, url: string, info: any, output: string): any {
   writeFileSync(logFilepath, file);
 }
 
-class EntryPointSelector implements IPreAkiLoadMod {
+class EntryPointSelector implements ISptLoadMod {
 
   timeout: any;
 
-  preAkiLoad(container: DependencyContainer): void {
+  SptLoad(container: DependencyContainer): void {
     const logger = container.resolve<ILogger>('WinstonLogger');
     const databaseServer = container.resolve<DatabaseServer>('DatabaseServer');
     const staticRouterModService = container.resolve<StaticRouterModService>('StaticRouterModService');
     const dynamicRouterModService = container.resolve<DynamicRouterModService>('DynamicRouterModService');
     const locationController = container.resolve<LocationController>('LocationController');
     const inraidCallbacks = container.resolve<InraidCallbacks>('InraidCallbacks');
-    const httpResponse = container.resolve<HttpResponseUtil>('HttpResponseUtil');
+    const httsponse = container.resolve<HttsponseUtil>('HttsponseUtil');
 
     const setSpawnPointParams = {
       url: '/client/locations',
@@ -101,7 +101,7 @@ class EntryPointSelector implements IPreAkiLoadMod {
 
         returnResult.locations = data;
         returnResult.paths = (locations as any).base.paths;
-        return httpResponse.getBody(returnResult);
+        return httsponse.getBody(returnResult);
       }
     };
     const openEPSOnRaid = {
@@ -150,31 +150,31 @@ class EntryPointSelector implements IPreAkiLoadMod {
             config.maps[locationId] = [];
             writeFileSync(configFilepath, JSON.stringify(config, null, 2));
           }
-          return httpResponse.getBody({
+          return httsponse.getBody({
             ...location,
             SpawnPointParams,
           });
         } catch (err) {
-          return httpResponse.getBody(location);
+          return httsponse.getBody(location);
         }
       }
     };
 
     staticRouterModService.registerStaticRouter(
-      'StaticRoutePeekingAki',
+      'StaticRoutePeekingSpt',
       [
         // setSpawnPointParams,
         openEPSOnRaid,
         openEPSOnLocation,
       ],
-      'aki'
+      'Spt'
     );
     dynamicRouterModService.registerDynamicRouter(
-      'DynamicRoutePeekingAki',
+      'DynamicRoutePeekingSpt',
       [
         main,
       ],
-      'aki'
+      'Spt'
     );
 
   }
