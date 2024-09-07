@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "main": "src/mod.js",
   "license": "MIT",
-  "author": "usama8800 and Doup22",
+  "author": "usama8800 and updated by Doup22",
   "sptVersion": "~3.9",
   "scripts": {
     "sppm": "nodemon -w scripts/spawnPointParamsMap.ts --exec npx ts-node scripts/spawnPointParamsMap.ts",
