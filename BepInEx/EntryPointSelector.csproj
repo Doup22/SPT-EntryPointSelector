@@ -1,92 +1,102 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <AssemblyName>EntryPointSelector</AssemblyName>
     <Description>Entry Point Selector</Description>
-    <Version>1.0.0</Version>
+    <Version>2.0.3</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Authors>usama8800</Authors>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+    <BaseOutputPath>D:\SPT DEV\DEV\bin\Releases</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>deps\core\0Harmony.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="0Harmony20">
-      <HintPath>deps\core\0Harmony20.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\0Harmony20.dll</HintPath>
     </Reference>
-    <Reference Include="aki-custom">
-      <HintPath>deps\plugins\aki-custom.dll</HintPath>
+    <Reference Include="spt-custom">
+      <HintPath>..\..\BepInEx\plugins\spt\spt-custom.dll</HintPath>
     </Reference>
-    <Reference Include="aki-singleplayer">
-      <HintPath>deps\plugins\aki-singleplayer.dll</HintPath>
+    <Reference Include="spt-singleplayer">
+      <HintPath>..\..\BepInEx\plugins\spt\spt-singleplayer.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>deps\core\BepInEx.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>deps\core\BepInEx.Harmony.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\BepInEx.Harmony.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Preloader">
-      <HintPath>deps\core\BepInEx.Preloader.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\BepInEx.Preloader.dll</HintPath>
     </Reference>
     <Reference Include="HarmonyXInterop">
-      <HintPath>deps\core\HarmonyXInterop.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\HarmonyXInterop.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil">
-      <HintPath>deps\core\Mono.Cecil.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>deps\core\Mono.Cecil.Mdb.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\Mono.Cecil.Mdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>deps\core\Mono.Cecil.Pdb.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>deps\core\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>deps\core\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>deps\core\MonoMod.Utils.dll</HintPath>
+      <HintPath>..\..\BepInEx\core\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="ItemComponent.Types">
-      <HintPath>deps\Managed\ItemComponent.Types.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\ItemComponent.Types.dll</HintPath>
     </Reference>
-    <Reference Include="Aki.Reflection">
-      <HintPath>deps\Managed\Aki.Reflection.dll</HintPath>
+    <Reference Include="spt-reflection">
+      <HintPath>..\..\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Aki.Common">
-      <HintPath>deps\Managed\Aki.Common.dll</HintPath>
+    <Reference Include="spt-common">
+      <HintPath>..\..\BepInEx\plugins\spt\spt-Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>deps\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Comfort">
-      <HintPath>deps\Managed\Comfort.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Comfort.Unity">
-      <HintPath>deps\Managed\Comfort.Unity.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.Unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>deps\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>deps\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>deps\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="LocationSelectPatch.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Plugin.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
 </Project>
