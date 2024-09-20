@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Logging;
 using System;
 using System.Collections.Generic;

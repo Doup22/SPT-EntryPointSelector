@@ -1,4 +1,4 @@
-using EFT;
+﻿using EFT;
 using EFT.UI.Matchmaker;
 using HarmonyLib;
 using SPT.Common.Http;
