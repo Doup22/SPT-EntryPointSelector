@@ -10,7 +10,7 @@ using static EntryPointSelector.LocationSelectPatch;
 namespace EntryPointSelector
 {
     // first string below is your plugin's GUID, it MUST be unique to any other mod. Read more about it in BepInEx docs. Be sure to update it if you copy this project.
-    [BepInPlugin("net.usama8800.entry-point-selector", "Entry Point Selector", "1.2.0")]
+    [BepInPlugin("9291A9D9-F671-4EA9-95C1-352F3C0FE233", "Entry Point Selector", "1.2.0")]
 
     public class Plugin : BaseUnityPlugin
     {
@@ -29,5 +29,5 @@ namespace EntryPointSelector
             // new SimplePatch().Enable();
         }
     }
-   
+
 }

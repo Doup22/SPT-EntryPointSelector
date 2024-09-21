@@ -7,9 +7,10 @@
     <Version>2.0.3</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <Authors>usama8800</Authors>
+    <Authors>usama8800, Doup22</Authors>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <BaseOutputPath>D:\SPT DEV\DEV\bin\Releases</BaseOutputPath>
+    <BaseOutputPath>D:\SPT DEV\DEV\Entry Point Selector\bin\Releases</BaseOutputPath>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -60,35 +61,27 @@
     </Reference>
     <Reference Include="spt-reflection">
       <HintPath>..\..\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="spt-common">
       <HintPath>..\..\BepInEx\plugins\spt\spt-Common.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Comfort">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Comfort.Unity">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.Unity.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -99,4 +92,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\BepInEx\plugins\$(TargetFileName)&quot;" />
+  </Target>
 </Project>

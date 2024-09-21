@@ -15,11 +15,11 @@ namespace EntryPointSelector
 {
     public class LocationSelectPatch : ModulePatch
     {
-
         protected override MethodBase GetTargetMethod()
         {
+            // Using PublicFlags to access public methods instead of private methods
             var desiredType = typeof(MatchmakerOfflineRaidScreen);
-            var desiredMethod = desiredType.GetMethod("Show", PatchConstants.PrivateFlags);
+            var desiredMethod = desiredType.GetMethod("Show", BindingFlags.Public | BindingFlags.Instance);
 
             return desiredMethod;
         }
@@ -30,7 +30,7 @@ namespace EntryPointSelector
         )
         {
             Logger.LogInfo($"EntryPointSelector {raidSettings?.LocationId}");
-            var jsonPayload = new
+            _ = new
             {
                 locationId = raidSettings?.LocationId
             };
@@ -40,6 +40,4 @@ namespace EntryPointSelector
             return true;
         }
     }
-
-
 }
