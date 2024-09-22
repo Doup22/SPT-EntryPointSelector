@@ -5,11 +5,7 @@ using SPT.Common.Http;
 using SPT.Reflection.Patching;
 using SPT.Reflection.Utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EntryPointSelector
 {
@@ -17,25 +13,38 @@ namespace EntryPointSelector
     {
         protected override MethodBase GetTargetMethod()
         {
-            // Using PublicFlags to access public methods instead of private methods
+            // Hook into the public instance method "Show" with parameters (InfoClass, RaidSettings)
             var desiredType = typeof(MatchmakerOfflineRaidScreen);
-            var desiredMethod = desiredType.GetMethod("Show", BindingFlags.Public | BindingFlags.Instance);
+            var desiredMethod = desiredType.GetMethod("Show", BindingFlags.Public | BindingFlags.Instance, null, new Type[] { typeof(InfoClass), typeof(RaidSettings) }, null);
+
+            if (desiredMethod == null)
+            {
+                Logger.LogError("Failed to find the Show(InfoClass, RaidSettings) method. Please check the method signature.");
+            }
+            else
+            {
+                Logger.LogInfo("Successfully found the Show(InfoClass, RaidSettings) method.");
+            }
 
             return desiredMethod;
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(
-          RaidSettings raidSettings
-        )
+        public static bool PatchPrefix(InfoClass profileInfo, RaidSettings raidSettings)
         {
-            Logger.LogInfo($"EntryPointSelector {raidSettings?.LocationId}");
-            _ = new
+            if (raidSettings == null)
             {
-                locationId = raidSettings?.LocationId
-            };
+                Logger.LogError("raidSettings is null in PatchPrefix.");
+                return true;
+            }
 
-            RequestHandler.PostJson("/eps/location", "{\"locationId\": \"" + raidSettings?.LocationId + "\"}");
+            Logger.LogInfo($"EntryPointSelector invoked for LocationId: {raidSettings.LocationId}");
+
+            // Create a JSON payload with the selected location ID
+            var payload = "{\"locationId\": \"" + raidSettings.LocationId + "\"}";
+
+            // Send the HTTP POST request
+            RequestHandler.PostJson("/eps/location", payload);
 
             return true;
         }
