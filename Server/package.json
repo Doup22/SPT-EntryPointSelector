@@ -1,10 +1,10 @@
 {
   "name": "Entry Point Selector",
-  "version": "2.0.0",
+  "version": "2.0.5",
   "main": "src/mod.js",
   "license": "MIT",
-  "author": "usama8800 and updated by Doup22",
-  "sptVersion": "~3.9",
+  "author": "Dsnyder and code fixed by GrooveypenguinX, thanks for being a legend!",
+  "sptVersion": "~3.10",
   "scripts": {
     "sppm": "nodemon -w scripts/spawnPointParamsMap.ts --exec npx ts-node scripts/spawnPointParamsMap.ts",
     "zip": "npx ts-node scripts/zip.ts archive",
