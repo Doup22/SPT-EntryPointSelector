@@ -4,12 +4,12 @@
     <TargetFramework>net471</TargetFramework>
     <AssemblyName>EntryPointSelector</AssemblyName>
     <Description>Entry Point Selector</Description>
-    <Version>2.0.3</Version>
+	 <Version>2.0.5</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <Authors>usama8800, Doup22</Authors>
+	 <Authors>Dsnyder</Authors>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-    <BaseOutputPath>D:\SPT DEV\DEV\Entry Point Selector\bin\Releases</BaseOutputPath>
+    <BaseOutputPath>D:\SPT 3.10 DEV\DEV\Entry Point Selector\bin\Releases</BaseOutputPath>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 
